@@ -25,8 +25,10 @@ bool botonPresionadoAnteriormente = false;
 void setup() {
   Serial.begin(115200);
 
-  pinMode(ENCODER_SW_PIN, INPUT_PULLUP);
-  encoder.attachHalfQuad(ENCODER_CLK_PIN, ENCODER_DT_PIN);
+  pinMode(ENCODER_SW_PIN, INPUT);
+  pinMode(ENCODER_CLK_PIN, INPUT);
+  pinMode(ENCODER_DT_PIN, INPUT);
+  encoder.attachHalfQuad(ENCODER_DT_PIN, ENCODER_CLK_PIN);
   encoder.setCount(0);
 
   pinMode(LCD_BL_PIN, OUTPUT);
@@ -42,41 +44,28 @@ void setup() {
   display.println("Encoder OK");
   display.display();
   delay(1000);
+  encoder.setFilter(1023);
+  lastEncoderValue = -1;
 }
 
 void loop() {
-  encoderValue = encoder.getCount() / 2;
+  long newPosition = encoder.getCount();
+  Serial.println(newPosition);
 
-  bool botonPresionado = (digitalRead(ENCODER_SW_PIN) == LOW);
-  if (botonPresionado && !botonPresionadoAnteriormente) {
-    encoder.setCount(0);
 
+  if (newPosition != lastEncoderValue) {
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setCursor(12, 16);
-    display.print("Presionado");
-    display.display();
-    delay(500);
-
-    lastEncoderValue = -1;
-  }
-  botonPresionadoAnteriormente = botonPresionado;
-
-  if (encoderValue != lastEncoderValue) {
-    display.clearDisplay();
-    
     display.setTextSize(1);
     display.setCursor(0, 0);
     display.print("Posicion:");
     
     display.setTextSize(2); 
     display.setCursor(20, 15);
-    display.print(encoderValue);
+    display.print(newPosition);
     
     display.display();
 
-    lastEncoderValue = encoderValue;
+    lastEncoderValue = newPosition;
   }
-  
-  delay(10);
+  delay(100);
 }
